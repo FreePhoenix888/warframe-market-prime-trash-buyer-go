@@ -6,11 +6,50 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 
 	"github.com/ztrue/tracerr"
 )
+
+var ItemNamesToBuy = []string{
+	"Harrow Prime Blueprint",
+	"Astilla Prime Stock",
+	"Braton Prime Receiver",
+	"Knell Prime Receiver",
+	"Corvas Prime Blueprint",
+	"Magnus Prime Receiver",
+	"Burston Prime Barrel",
+	"Akbronco Prime Link",
+	"Pandero Prime Barrel",
+	"Nagantaka Prime Stock",
+	"Scourge Prime Handle",
+	"Tekko Prime Blueprint",
+	"Orthos Prime Blueprint",
+	"Zakti Prime Barrel",
+	"Stradavar Prime Barrel",
+	"Ninkondi Prime Chain",
+	"Zakti Prime Barrel",
+	"Ninkondi Prime Chain",
+	"Afuris Prime Link",
+	"Nidus Prime Blueprint",
+	"Baza Prime Barrel",
+	"Harrow Prime Neuroptics Blueprint",
+	"Inaros Prime Chassis Blueprint",
+	"Gara Prime Neuroptics Blueprint",
+	"Karyst Prime Handle",
+	"Tatsu Prime Blade",
+	"Volnus Prime Head",
+	"Redeemer Prime Blueprint",
+	"Dethcube Prime Carapace",
+	"Titania Prime Neuroptics Blueprint",
+	"Guandao Prime Blueprint",
+	"Garuda Prime Chassis Blueprint",
+	"Panthera Prime Stock",
+	"Khora Prime Chassis Blueprint",
+	"Atlas Prime Chassis Blueprint",
+	"Dual Keres Prime Blueprint"}
 
 type ItemsItem struct {
 	ID       string `json:"id"`
@@ -220,10 +259,15 @@ func GetGoodOrders() ([]GoodOrder, error) {
 
 	goodOrders := make([]GoodOrder, 0, 10)
 	for _, item := range items {
+		if !slices.Contains(ItemNamesToBuy, item.ItemName) {
+			log.Println("Ignoring " + item.ItemName + " because it is not in the list of items we should buy")
+			continue
+		}
+
 		log.Println("Fetching orders for " + item.ItemName)
 		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", item.URLName))
 		if err != nil {
-			return nil, fmt.Errorf("error getting orders for %s:%s", item.ItemName, err)
+			return nil, fmt.Errorf("error getting orders for %s: %s", item.ItemName, err)
 		}
 		defer ordersResponseEncoded.Body.Close()
 
