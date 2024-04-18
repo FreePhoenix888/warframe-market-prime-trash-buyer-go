@@ -12,14 +12,6 @@ import (
 	"github.com/ztrue/tracerr"
 )
 
-const (
-	RequestInterval = time.Second / 4
-)
-
-const (
-	NumWorkers = 4
-)
-
 type ItemsItem struct {
 	ID       string `json:"id"`
 	URLName  string `json:"url_name"`
