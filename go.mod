@@ -1,4 +1,5 @@
-module warframe_market_api
+module 	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go"
+
 
 go 1.22.0
 
