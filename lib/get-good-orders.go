@@ -28,21 +28,24 @@ func GetGoodOrders() ([]GoodOrder, error) {
 	}
 	items := itemsResponse.Payload.Items
 
-	goodOrders := make([]GoodOrder, 0, 10)
+	var itemsToBuy []warframemarket.ItemsItem
 	for _, item := range items {
-		if !slices.Contains(data.ItemNamesToBuy, item.ItemName) {
-			log.Println("Ignoring " + item.ItemName + " because it is not in the list of items we should buy")
-			continue
+		if slices.Contains(data.ItemNamesToBuy, item.ItemName) {
+			itemsToBuy = append(itemsToBuy, item)
 		}
+	}
 
-		log.Println("Fetching orders for " + item.ItemName)
-		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", item.URLName))
+	goodOrders := make([]GoodOrder, 0, 10)
+	for _, itemToBuy := range itemsToBuy {
+
+		log.Println("Fetching orders for " + itemToBuy.ItemName)
+		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", itemToBuy.URLName))
 		if err != nil {
-			return nil, fmt.Errorf("error getting orders for %s: %s", item.ItemName, err)
+			return nil, fmt.Errorf("error getting orders for %s: %s", itemToBuy.ItemName, err)
 		}
 		defer ordersResponseEncoded.Body.Close()
 
-		log.Println("Decoding orders response for " + item.ItemName)
+		log.Println("Decoding orders response for " + itemToBuy.ItemName)
 		var ordersResponse warframemarket.OrdersResponse
 		if err := json.NewDecoder(ordersResponseEncoded.Body).Decode(&ordersResponse); err != nil {
 			return nil, tracerr.Errorf("failed to decode JSON: %s", err)
@@ -74,7 +77,7 @@ func GetGoodOrders() ([]GoodOrder, error) {
 
 			goodOrder := GoodOrder{
 				Order: order,
-				Item:  item,
+				Item:  itemToBuy,
 			}
 			log.Println("Found good order!")
 			goodOrders = append(goodOrders, goodOrder)
