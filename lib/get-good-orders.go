@@ -7,11 +7,15 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go/data"
 	warframemarket "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/warframe-market"
 	"github.com/ztrue/tracerr"
 )
+
+// RateLimit defines the number of requests allowed per second.
+const RateLimit = 3
 
 func GetGoodOrders() ([]GoodOrder, error) {
 	log.Println("Fetching items")
@@ -36,9 +40,17 @@ func GetGoodOrders() ([]GoodOrder, error) {
 	}
 
 	goodOrders := make([]GoodOrder, 0, 10)
+
+	// Create a ticker to limit requests
+	ticker := time.Tick(time.Second / RateLimit)
+
 	for _, itemToBuy := range itemsToBuy {
 
 		log.Println("Fetching orders for " + itemToBuy.ItemName)
+
+		// Wait for the next tick to limit requests
+		<-ticker
+
 		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", itemToBuy.URLName))
 		if err != nil {
 			return nil, fmt.Errorf("error getting orders for %s: %s", itemToBuy.ItemName, err)
