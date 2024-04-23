@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go/data"
-	warframemarket "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/warframe-market"
+	warframemarket "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/warframe_market"
 	"github.com/ztrue/tracerr"
 )
 
