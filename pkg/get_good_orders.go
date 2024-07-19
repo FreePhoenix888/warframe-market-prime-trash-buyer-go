@@ -1,55 +1,49 @@
-package lib
+package warframe_market_prime_trash_buyer
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"slices"
-	"strconv"
 	"time"
 
-	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go/data"
-	warframemarket "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/warframe_market"
+	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/data"
+	warframe_market "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market"
+	warframe_market_models "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market/models"
 	"github.com/ztrue/tracerr"
+	"go.uber.org/zap"
 )
 
-// RateLimit defines the number of requests allowed per second.
-const RateLimit = 3
-
-func GetGoodOrders() ([]GoodOrder, error) {
-	log.Println("Fetching items")
+func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
+	logger.Info("Fetching items")
 	itemsResponseEncoded, err := http.Get("https://api.warframe.market/v1/items")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items info: %s", err)
 	}
 	defer itemsResponseEncoded.Body.Close()
 
-	log.Println("Decoding items response")
-	var itemsResponse warframemarket.ItemsResponse
+	logger.Info("Decoding items response")
+	var itemsResponse warframe_market_models.ItemsResponse
 	if err := json.NewDecoder(itemsResponseEncoded.Body).Decode(&itemsResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %s", err)
 	}
 	items := itemsResponse.Payload.Items
 
-	var itemsToBuy []warframemarket.ItemsItem
+	var itemsToBuy []warframe_market_models.ItemsItem
 	for _, item := range items {
 		if slices.Contains(data.ItemNamesToBuy, item.ItemName) {
 			itemsToBuy = append(itemsToBuy, item)
 		}
 	}
 
-	goodOrders := make([]GoodOrder, 0, 10)
+	profitableOrders := make([]OrderWithItem, 0, 10)
 
-	// Create a ticker to limit requests
-	ticker := time.Tick(time.Second / RateLimit)
+	rateLimiter := time.NewTicker(time.Second / warframe_market.MaxRequestsPerSecond)
+	defer rateLimiter.Stop()
 
 	for _, itemToBuy := range itemsToBuy {
-
-		log.Println("Fetching orders for " + itemToBuy.ItemName)
-
-		// Wait for the next tick to limit requests
-		<-ticker
+		<-rateLimiter.C
+		logger.Info("Fetching orders for item", zap.String("item_name", itemToBuy.ItemName))
 
 		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", itemToBuy.URLName))
 		if err != nil {
@@ -57,16 +51,21 @@ func GetGoodOrders() ([]GoodOrder, error) {
 		}
 		defer ordersResponseEncoded.Body.Close()
 
-		log.Println("Decoding orders response for " + itemToBuy.ItemName)
-		var ordersResponse warframemarket.OrdersResponse
+		logger.Info("Decoding orders response for item", zap.String("item_name", itemToBuy.ItemName))
+		var ordersResponse warframe_market_models.OrdersResponse
 		if err := json.NewDecoder(ordersResponseEncoded.Body).Decode(&ordersResponse); err != nil {
 			return nil, tracerr.Errorf("failed to decode JSON: %s", err)
 		}
 
 		orders := ordersResponse.Payload.Orders
 
-		log.Println("Looking for good orders...")
+		logger.Info("Looking for profitable orders...")
 		for _, order := range orders {
+			isSellOrder := order.OrderType.IsSell()
+			if !isSellOrder {
+				continue
+			}
+
 			isIngame := order.User.Status.IsIngame()
 			if !isIngame {
 				continue
@@ -87,15 +86,15 @@ func GetGoodOrders() ([]GoodOrder, error) {
 				continue
 			}
 
-			goodOrder := GoodOrder{
+			orderWithItem := OrderWithItem{
 				Order: order,
 				Item:  itemToBuy,
 			}
-			log.Println("Found good order!")
-			goodOrders = append(goodOrders, goodOrder)
+			logger.Info("Found profitable order!")
+			profitableOrders = append(profitableOrders, orderWithItem)
 		}
 	}
 
-	log.Println("Found " + strconv.Itoa(len(goodOrders)) + " good orders")
-	return goodOrders, nil
+	logger.Info("Found profitable orders", zap.Int("length", len(profitableOrders)))
+	return profitableOrders, nil
 }
