@@ -1,4 +1,4 @@
-# Warframe Market Prime Trash Buyer Go
+# Warframe Market Prime Trash Buyer Go Library
 
 A Go library for fetching profitable orders from the Warframe Market and generating purchase messages. This library is designed to help users find orders with the best platinum-to-ducats ratio for trading in Warframe.
 
