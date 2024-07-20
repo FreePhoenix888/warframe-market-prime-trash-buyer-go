@@ -14,9 +14,8 @@ import (
 func main() {
 	var logger *zap.Logger
 
-	if os.Getenv("LOG_LEVEL") == "production" {
-		logger = zap.NewNop()
-	} else {
+	logger = zap.NewNop()
+	if os.Getenv("LOG_LEVEL") == "debug" {
 		var err error
 		logger, err = zap.NewProduction()
 		if err != nil {
