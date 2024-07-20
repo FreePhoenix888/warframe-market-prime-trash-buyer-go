@@ -7,7 +7,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/data"
 	warframe_market "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market"
 	warframe_market_models "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market/models"
 	"github.com/ztrue/tracerr"
@@ -28,7 +27,7 @@ func GetProfitableOrders() ([]OrderWithItem, error) {
 
 	var itemsToBuy []warframe_market_models.ItemsItem
 	for _, item := range items {
-		if slices.Contains(data.ItemNamesToBuy, item.ItemName) {
+		if slices.Contains(ProfitableItemNames, item.ItemName) {
 			itemsToBuy = append(itemsToBuy, item)
 		}
 	}

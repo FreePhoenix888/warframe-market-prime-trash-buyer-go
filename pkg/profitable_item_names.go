@@ -1,6 +1,6 @@
-package data
+package warframe_market_prime_trash_buyer
 
-var ItemNamesToBuy = []string{
+var ProfitableItemNames = []string{
 	"Harrow Prime Blueprint",
 	"Astilla Prime Stock",
 	"Braton Prime Receiver",
