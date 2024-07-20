@@ -2,14 +2,11 @@ package warframe_market_prime_trash_buyer
 
 import (
 	"strconv"
-
-	"go.uber.org/zap"
 )
 
-func GeneratePurchaseMessages(profitableOrders []OrderWithItem, logger *zap.Logger) ([]string, error) {
+func GeneratePurchaseMessages(profitableOrders []OrderWithItem) ([]string, error) {
 	messages := make([]string, 0, len(profitableOrders))
 	for _, orderWithItem := range profitableOrders {
-		logger.Info("Generating message for order", zap.String("order_id", orderWithItem.Order.ID))
 		userName := orderWithItem.Order.User.IngameName
 		itemName := orderWithItem.Item.ItemName
 		price := orderWithItem.Order.Platinum

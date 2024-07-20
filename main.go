@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -11,22 +10,9 @@ import (
 	"github.com/briandowns/spinner"
 	pkg "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/pkg"
 	"github.com/mgutz/ansi"
-	"go.uber.org/zap"
 )
 
 func main() {
-	var logger *zap.Logger
-
-	logger = zap.NewNop()
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		var err error
-		logger, err = zap.NewProduction()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	defer logger.Sync()
-
 	// Used to track copied messages
 	copiedMessages := make(map[string]struct{})
 
@@ -39,10 +25,24 @@ func main() {
 		loadingSpinner.Suffix = "] Processing...\n"
 		loadingSpinner.Start()
 
-		profitableOrders, err := pkg.GetProfitableOrders(logger)
+		profitableOrders, err := pkg.GetProfitableOrders()
 		if err != nil {
 			loadingSpinner.Stop()
-			logger.Fatal("failed to get profitable orders", zap.Error(err))
+			fmt.Println("Error getting profitable orders:", err)
+			fmt.Print("Type 'regen' to fetch new orders or 'exit' to quit: ")
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()
+			input := scanner.Text()
+
+			if input == "exit" {
+				fmt.Println("Exiting.")
+				return
+			}
+			if input == "regen" {
+				continue // Restart the loop to fetch new orders
+			}
+			fmt.Println("Invalid input.")
+			continue
 		}
 
 		if len(profitableOrders) == 0 {
@@ -64,10 +64,24 @@ func main() {
 			continue
 		}
 
-		messages, err := pkg.GeneratePurchaseMessages(profitableOrders, logger)
+		messages, err := pkg.GeneratePurchaseMessages(profitableOrders)
 		if err != nil {
 			loadingSpinner.Stop()
-			logger.Fatal("failed to generate purchase messages", zap.Error(err))
+			fmt.Println("Error generating purchase messages:", err)
+			fmt.Print("Type 'regen' to fetch new orders or 'exit' to quit: ")
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()
+			input := scanner.Text()
+
+			if input == "exit" {
+				fmt.Println("Exiting.")
+				return
+			}
+			if input == "regen" {
+				continue // Restart the loop to fetch new orders
+			}
+			fmt.Println("Invalid input.")
+			continue
 		}
 
 		loadingSpinner.Stop()
@@ -92,7 +106,7 @@ func main() {
 			printMessages(filteredMessages, hiddenMessagesCount)
 
 			if status != "" {
-				fmt.Print(status)
+				fmt.Print(status, "\n")
 			}
 			fmt.Print("Enter the number of the message to copy to clipboard, 'regen' to regenerate messages, or 'exit' to quit: ")
 			scanner.Scan()

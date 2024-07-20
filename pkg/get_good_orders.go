@@ -11,18 +11,15 @@ import (
 	warframe_market "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market"
 	warframe_market_models "github.com/freephoenix888/warframe-market-prime-trash-buyer-go/internal/warframe_market/models"
 	"github.com/ztrue/tracerr"
-	"go.uber.org/zap"
 )
 
-func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
-	logger.Info("Fetching items")
+func GetProfitableOrders() ([]OrderWithItem, error) {
 	itemsResponseEncoded, err := http.Get("https://api.warframe.market/v1/items")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get items info: %s", err)
 	}
 	defer itemsResponseEncoded.Body.Close()
 
-	logger.Info("Decoding items response")
 	var itemsResponse warframe_market_models.ItemsResponse
 	if err := json.NewDecoder(itemsResponseEncoded.Body).Decode(&itemsResponse); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON: %s", err)
@@ -43,7 +40,6 @@ func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
 
 	for _, itemToBuy := range itemsToBuy {
 		<-rateLimiter.C
-		logger.Info("Fetching orders for item", zap.String("item_name", itemToBuy.ItemName))
 
 		ordersResponseEncoded, err := http.Get(fmt.Sprintf("https://api.warframe.market/v1/items/%s/orders", itemToBuy.URLName))
 		if err != nil {
@@ -51,7 +47,6 @@ func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
 		}
 		defer ordersResponseEncoded.Body.Close()
 
-		logger.Info("Decoding orders response for item", zap.String("item_name", itemToBuy.ItemName))
 		var ordersResponse warframe_market_models.OrdersResponse
 		if err := json.NewDecoder(ordersResponseEncoded.Body).Decode(&ordersResponse); err != nil {
 			return nil, tracerr.Errorf("failed to decode JSON: %s", err)
@@ -59,7 +54,6 @@ func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
 
 		orders := ordersResponse.Payload.Orders
 
-		logger.Info("Looking for profitable orders...")
 		for _, order := range orders {
 			isSellOrder := order.OrderType.IsSell()
 			if !isSellOrder {
@@ -90,11 +84,9 @@ func GetProfitableOrders(logger *zap.Logger) ([]OrderWithItem, error) {
 				Order: order,
 				Item:  itemToBuy,
 			}
-			logger.Info("Found profitable order!")
 			profitableOrders = append(profitableOrders, orderWithItem)
 		}
 	}
 
-	logger.Info("Found profitable orders", zap.Int("length", len(profitableOrders)))
 	return profitableOrders, nil
 }

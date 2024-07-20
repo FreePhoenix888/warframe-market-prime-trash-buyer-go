@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetProfitableOrders(t *testing.T) {
-	profitableOrders, err := GetProfitableOrders(logger)
+	profitableOrders, err := GetProfitableOrders()
 
 	if err != nil {
 		t.Errorf("GetProfitableOrders() returned an error: %v", err)
