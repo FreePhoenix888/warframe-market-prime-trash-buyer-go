@@ -78,6 +78,10 @@ func main() {
 }
 ```
 
+## CLI Application
+
+There is also a CLI application `warframe-market-prime-trash-buyer-go-cli` available that utilizes this library. You can find it [here](https://github.com/FreePhoenix888/warframe-market-prime-trash-buyer-go-cli).
+
 ## How It Works
 
 ### GetProfitableOrders
@@ -88,7 +92,7 @@ This function:
 3. For each item, retrieves orders and filters them based on several criteria:
    - Must be a sell order.
    - The user must be in-game.
-   - Must be a PC platform.
+   - Must be on the PC platform.
    - Quantity should be 3 or more.
    - Price should be 4 platinum or less.
 4. Returns a list of orders that meet these criteria.
@@ -107,4 +111,3 @@ Contributions are welcome! Please submit a pull request or open an issue if you 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
