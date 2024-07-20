@@ -31,19 +31,19 @@ The `GetProfitableOrders` function retrieves orders that offer the best platinum
 package main
 
 import (
-	"fmt"
-	"log"
+  "fmt"
+  "log"
 
-	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go"
+  "github.com/freephoenix888/warframe-market-prime-trash-buyer-go"
 )
 
 func main() {
-	profitableOrders, err := warframe_market_prime_trash_buyer.GetProfitableOrders()
-	if err != nil {
-		log.Fatalf("Error fetching profitable orders: %s", err)
-	}
+  profitableOrders, err := warframe_market_prime_trash_buyer.GetProfitableOrders()
+  if err != nil {
+    log.Fatalf("Error fetching profitable orders: %s", err)
+  }
 
-	fmt.Printf("Found %d profitable orders.\n", len(profitableOrders))
+  fmt.Printf("Found %d profitable orders.\n", len(profitableOrders))
 }
 ```
 
@@ -55,26 +55,26 @@ Once you have the profitable orders, you can generate purchase messages using th
 package main
 
 import (
-	"fmt"
-	"log"
+  "fmt"
+  "log"
 
-	"github.com/freephoenix888/warframe-market-prime-trash-buyer-go"
+  "github.com/freephoenix888/warframe-market-prime-trash-buyer-go"
 )
 
 func main() {
-	profitableOrders, err := warframe_market_prime_trash_buyer.GetProfitableOrders()
-	if err != nil {
-		log.Fatalf("Error fetching profitable orders: %s", err)
-	}
+  profitableOrders, err := warframe_market_prime_trash_buyer.GetProfitableOrders()
+  if err != nil {
+    log.Fatalf("Error fetching profitable orders: %s", err)
+  }
 
-	messages, err := warframe_market_prime_trash_buyer.GeneratePurchaseMessages(profitableOrders)
-	if err != nil {
-		log.Fatalf("Error generating purchase messages: %s", err)
-	}
+  messages, err := warframe_market_prime_trash_buyer.GeneratePurchaseMessages(profitableOrders)
+  if err != nil {
+    log.Fatalf("Error generating purchase messages: %s", err)
+  }
 
-	for _, message := range messages {
-		fmt.Println(message)
-	}
+  for _, message := range messages {
+    fmt.Println(message)
+  }
 }
 ```
 
