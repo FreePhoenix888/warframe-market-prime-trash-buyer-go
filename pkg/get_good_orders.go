@@ -9,7 +9,6 @@ import (
 
 	warframe_market "github.com/freephoenix888/warframe-market-prime-trash-buyer-go-lib/internal/warframe_market"
 	warframe_market_models "github.com/freephoenix888/warframe-market-prime-trash-buyer-go-lib/internal/warframe_market/models"
-	"github.com/ztrue/tracerr"
 )
 
 func GetProfitableOrders() ([]OrderWithItem, error) {
@@ -48,7 +47,7 @@ func GetProfitableOrders() ([]OrderWithItem, error) {
 
 		var ordersResponse warframe_market_models.OrdersResponse
 		if err := json.NewDecoder(ordersResponseEncoded.Body).Decode(&ordersResponse); err != nil {
-			return nil, tracerr.Errorf("failed to decode JSON: %s", err)
+			return nil, fmt.Errorf("failed to decode JSON: %s", err)
 		}
 
 		orders := ordersResponse.Payload.Orders
